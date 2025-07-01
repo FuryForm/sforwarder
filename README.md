@@ -266,8 +266,7 @@ socket-forwarder/
 ├── README.md                 # This comprehensive guide
 ├── ANDROID_BUILD.md         # Detailed Android build instructions
 ├── ANDROID_DEPLOYMENT.md    # Android deployment guide
-├── BUILD_SUMMARY.md         # Build system summary
-└── GITHUB_SETUP.md          # GitHub repository setup instructions
+└── BUILD_SUMMARY.md         # Build system summary
 ```
 
 ## Notes
@@ -291,7 +290,27 @@ This project was created with GitHub Copilot AI assistance. When contributing:
 
 ## License
 
-[Add your license here]
+MIT License
+
+Copyright (c) 2025 Socket Forwarder Project
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ## Documentation
 
@@ -300,7 +319,6 @@ For detailed information, see:
 - `ANDROID_BUILD.md` - Comprehensive Android build instructions
 - `ANDROID_DEPLOYMENT.md` - Android deployment guide
 - `BUILD_SUMMARY.md` - Build system summary
-- `GITHUB_SETUP.md` - GitHub repository setup instructions
 
 ## Support
 
@@ -313,4 +331,3 @@ For issues or questions:
 ---
 
 **Created with GitHub Copilot AI** - This project demonstrates modern AI-assisted development practices.
-- ARM, ARM64, x86, or x86_64 architecture
