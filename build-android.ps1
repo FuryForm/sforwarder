@@ -22,6 +22,11 @@ if ($Help) {
     Write-Host "  NDK_PATH           Path to Android NDK (required)"
     Write-Host "  ANDROID_API        Android API level (default: 21)"
     Write-Host ""
+    Write-Host "Features:"
+    Write-Host "  - Builds for all Android architectures (ARM64, ARM, x86_64, x86)"
+    Write-Host "  - Automatic binary stripping using llvm-strip for minimal size"
+    Write-Host "  - Go build optimization with -ldflags '-s -w'"
+    Write-Host ""
     Write-Host "Examples:"
     Write-Host "  .\build-android.ps1"
     Write-Host "  .\build-android.ps1 -OutputDir dist -Clean"
@@ -139,9 +144,27 @@ foreach ($arch in $architectures) {
         $buildResult = & go build -ldflags "-s -w" -o $outputFile .
         
         if ($LASTEXITCODE -eq 0) {
-            $fileSize = (Get-Item $outputFile).Length
-            $fileSizeMB = [math]::Round($fileSize / 1MB, 2)
-            Write-Host "  ✓ Built successfully: $outputFile ($fileSizeMB MB)" -ForegroundColor Green
+            $fileSizeBeforeStrip = (Get-Item $outputFile).Length
+            $fileSizeBeforeStripMB = [math]::Round($fileSizeBeforeStrip / 1MB, 2)
+            
+            # Strip the binary using NDK strip tool for further size reduction
+            $stripTool = "$env:NDK_PATH/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-strip.exe"
+            
+            if (Test-Path $stripTool) {
+                Write-Host "  Stripping binary..." -ForegroundColor Gray
+                & $stripTool $outputFile
+                if ($LASTEXITCODE -eq 0) {
+                    $fileSizeAfterStrip = (Get-Item $outputFile).Length
+                    $fileSizeAfterStripMB = [math]::Round($fileSizeAfterStrip / 1MB, 2)
+                    $sizeReduction = [math]::Round((($fileSizeBeforeStrip - $fileSizeAfterStrip) / $fileSizeBeforeStrip) * 100, 1)
+                    Write-Host "  ✓ Built and stripped: $outputFile ($fileSizeAfterStripMB MB, $sizeReduction% smaller)" -ForegroundColor Green
+                } else {
+                    Write-Warning "  Strip failed, keeping unstripped binary ($fileSizeBeforeStripMB MB)"
+                }
+            } else {
+                Write-Host "  ✓ Built successfully: $outputFile ($fileSizeBeforeStripMB MB)" -ForegroundColor Green
+            }
+            
             $successfulBuilds++
         } else {
             Write-Error "  ✗ Build failed for $($arch.Suffix)"

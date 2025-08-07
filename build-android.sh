@@ -47,6 +47,11 @@ if [[ "$HELP" == "true" ]]; then
     echo "  NDK_PATH             Path to Android NDK (required)"
     echo "  ANDROID_API          Android API level (default: 21)"
     echo ""
+    echo "Features:"
+    echo "  - Builds for all Android architectures (ARM64, ARM, x86_64, x86)"
+    echo "  - Automatic binary stripping using llvm-strip for minimal size"
+    echo "  - Go build optimization with -ldflags '-s -w'"
+    echo ""
     echo "Examples:"
     echo "  $0"
     echo "  $0 --output-dir dist --clean"
@@ -160,9 +165,26 @@ for ARCH_NAME in "${!ARCHITECTURES[@]}"; do
     echo -e "\033[37m  GOOS=$GOOS GOARCH=$GOARCH CC=$CC\033[0m"
     
     if go build -ldflags "-s -w" -o "$OUTPUT_FILE" . 2>/dev/null; then
-        FILE_SIZE=$(stat -c%s "$OUTPUT_FILE" 2>/dev/null || stat -f%z "$OUTPUT_FILE" 2>/dev/null || echo "0")
-        FILE_SIZE_MB=$(echo "scale=2; $FILE_SIZE / 1024 / 1024" | bc -l 2>/dev/null || echo "?.?")
-        echo -e "\033[32m  ✓ Built successfully: $OUTPUT_FILE (${FILE_SIZE_MB} MB)\033[0m"
+        FILE_SIZE_BEFORE=$(stat -c%s "$OUTPUT_FILE" 2>/dev/null || stat -f%z "$OUTPUT_FILE" 2>/dev/null || echo "0")
+        FILE_SIZE_BEFORE_MB=$(echo "scale=2; $FILE_SIZE_BEFORE / 1024 / 1024" | bc -l 2>/dev/null || echo "?.?")
+        
+        # Strip the binary using NDK strip tool for further size reduction
+        STRIP_TOOL="$NDK_PATH/toolchains/llvm/prebuilt/$NDK_HOST/bin/llvm-strip"
+        
+        if [[ -f "$STRIP_TOOL" ]]; then
+            echo -e "\033[37m  Stripping binary...\033[0m"
+            if "$STRIP_TOOL" "$OUTPUT_FILE" 2>/dev/null; then
+                FILE_SIZE_AFTER=$(stat -c%s "$OUTPUT_FILE" 2>/dev/null || stat -f%z "$OUTPUT_FILE" 2>/dev/null || echo "0")
+                FILE_SIZE_AFTER_MB=$(echo "scale=2; $FILE_SIZE_AFTER / 1024 / 1024" | bc -l 2>/dev/null || echo "?.?")
+                SIZE_REDUCTION=$(echo "scale=1; ($FILE_SIZE_BEFORE - $FILE_SIZE_AFTER) * 100 / $FILE_SIZE_BEFORE" | bc -l 2>/dev/null || echo "0")
+                echo -e "\033[32m  ✓ Built and stripped: $OUTPUT_FILE (${FILE_SIZE_AFTER_MB} MB, ${SIZE_REDUCTION}% smaller)\033[0m"
+            else
+                echo -e "\033[33m  Strip failed, keeping unstripped binary (${FILE_SIZE_BEFORE_MB} MB)\033[0m"
+            fi
+        else
+            echo -e "\033[32m  ✓ Built successfully: $OUTPUT_FILE (${FILE_SIZE_BEFORE_MB} MB)\033[0m"
+        fi
+        
         ((SUCCESSFUL_BUILDS++))
     else
         echo -e "\033[31m  ✗ Build failed for $ARCH_NAME\033[0m"
